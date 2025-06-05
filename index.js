@@ -17,6 +17,12 @@ const __dirname = process.cwd();
 const PORT = process.env.PORT || 6060;
 
 app.use(cors());
+// Allow embedding in iframe from any origin
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "ALLOWALL");
+  res.setHeader("Content-Security-Policy", "frame-ancestors *");
+  next();
+});
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -28,70 +34,70 @@ app.use('/baremux/', express.static(baremuxPath));
 app.use('/', routes);
 
 server.on('request', (req, res) => {
-	app(req, res);
+    app(req, res);
 });
 
 server.on('upgrade', (req, socket, head) => {
-	if (req.url.endsWith('/wisp/')) {
-		wisp.routeRequest(req, socket, head);
-	} else {
-		socket.end();
-	}
+    if (req.url.endsWith('/wisp/')) {
+        wisp.routeRequest(req, socket, head);
+    } else {
+        socket.end();
+    }
 });
 
 server.on('listening', () => {
-	const address = server.address();
-	const theme = chalk.hex('#8F00FF');
-	const host = chalk.hex('0d52bd');
-	console.log(
-		chalk.bold(
-			theme(`
-	███████╗██████╗  █████╗  ██████╗███████╗
-	██╔════╝██╔══██╗██╔══██╗██╔════╝██╔════╝
-	███████╗██████╔╝███████║██║     █████╗  
-	╚════██║██╔═══╝ ██╔══██║██║     ██╔══╝  
-	███████║██║     ██║  ██║╚██████╗███████╗
-	╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
-											
-	`)
-		)
-	);
-	console.log(
-		`  ${chalk.bold(host('Local System:'))}            http://${address.family === 'IPv6' ? `[${address.address}]` : address.address}${address.port === 80 ? '' : ':' + chalk.bold(address.port)}`
-	);
+    const address = server.address();
+    const theme = chalk.hex('#8F00FF');
+    const host = chalk.hex('0d52bd');
+    console.log(
+        chalk.bold(
+            theme(`
+    ███████╗██████╗  █████╗  ██████╗███████╗
+    ██╔════╝██╔══██╗██╔══██╗██╔════╝██╔════╝
+    ███████╗██████╔╝███████║██║     █████╗  
+    ╚════██║██╔═══╝ ██╔══██║██║     ██╔══╝  
+    ███████║██║     ██║  ██║╚██████╗███████╗
+    ╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝╚══════╝
+                                            
+    `)
+        )
+    );
+    console.log(
+        `  ${chalk.bold(host('Local System:'))}            http://${address.family === 'IPv6' ? `[${address.address}]` : address.address}${address.port === 80 ? '' : ':' + chalk.bold(address.port)}`
+    );
 
-	console.log(
-		`  ${chalk.bold(host('Local System:'))}            http://localhost${address.port === 8080 ? '' : ':' + chalk.bold(address.port)}`
-	);
+    console.log(
+        `  ${chalk.bold(host('Local System:'))}            http://localhost${address.port === 8080 ? '' : ':' + chalk.bold(address.port)}`
+    );
 
-	try {
-		console.log(
-			`  ${chalk.bold(host('On Your Network:'))}  http://${hostname()}${address.port === 8080 ? '' : ':' + chalk.bold(address.port)}`
-		);
-	} catch (err) {
-		// can't find LAN interface
-	}
+    try {
+        console.log(
+            `  ${chalk.bold(host('On Your Network:'))}  http://${hostname()}${address.port === 8080 ? '' : ':' + chalk.bold(address.port)}`
+        );
+    } catch (err) {
+        // can't find LAN interface
+    }
 
-	if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-		console.log(
-			`  ${chalk.bold(host('Replit:'))}           https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-		);
-	}
+    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+        console.log(
+            `  ${chalk.bold(host('Replit:'))}           https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+        );
+    }
 
-	if (process.env.HOSTNAME && process.env.GITPOD_WORKSPACE_CLUSTER_HOST) {
-		console.log(
-			`  ${chalk.bold(host('Gitpod:'))}           https://${PORT}-${process.env.HOSTNAME}.${process.env.GITPOD_WORKSPACE_CLUSTER_HOST}`
-		);
-	}
+    if (process.env.HOSTNAME && process.env.GITPOD_WORKSPACE_CLUSTER_HOST) {
+        console.log(
+            `  ${chalk.bold(host('Gitpod:'))}           https://${PORT}-${process.env.HOSTNAME}.${process.env.GITPOD_WORKSPACE_CLUSTER_HOST}`
+        );
+    }
 
-	if (
-		process.env.CODESPACE_NAME &&
-		process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN
-	) {
-		console.log(
-			`  ${chalk.bold(host('Github Codespaces:'))}           https://${process.env.CODESPACE_NAME}-${address.port === 80 ? '' : address.port}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`
-		);
-	}
+    if (
+        process.env.CODESPACE_NAME &&
+        process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN
+    ) {
+        console.log(
+            `  ${chalk.bold(host('Github Codespaces:'))}           https://${process.env.CODESPACE_NAME}-${address.port === 80 ? '' : address.port}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`
+        );
+    }
 });
 
 server.listen(PORT);

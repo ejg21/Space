@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/epoxy/', express.static(epoxyPath));
-app.use('/@/', express.static(uvPath));
+app.use('/a/', express.static(uvPath));
 app.use('/libcurl/', express.static(libcurlPath));
 app.use('/baremux/', express.static(baremuxPath));
 
